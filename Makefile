@@ -47,8 +47,8 @@ nw/download/node-webkit-$(NW_VERSION)-linux-ia32:
 	cd nw/download && curl -OL http://dl.node-webkit.org/$(NW_VERSION)/node-webkit-$(NW_VERSION)-linux-ia32.tar.gz && tar xzf node-webkit-$(NW_VERSION)-linux-ia32.tar.gz
 
 nw/download/node-webkit-$(NW_VERSION)-linux-armhf:
-	msg := "Your processor is not yet supported, see https://github.com/zedapp/zed/issues/510"
-	exit 1
+	mkdir -p nw/download
+	cd nw/download && curl -OL https://github.com/jtg-gg/node-webkit/releases/download/nw-v0.12.0/nwjs-v0.12.0-linux-arm.tar.gz && tar xzf nwjs-v0.12.0-linux-arm.tar.gz
 
 nw/download/node-webkit-$(NW_VERSION)-osx-ia32:
 	mkdir -p nw/download
@@ -139,7 +139,25 @@ release/zed-linux32-v$(ZED_VERSION).tar.gz: nw/download nw/app.nw
 	rm -f release/zed-linux32.tar.gz
 	cd nw/build; tar cvzf ../../release/zed-linux32-v$(ZED_VERSION).tar.gz *
 
+apps-linux-arm-32: release/zed-linux-arm-32-v$(ZED_VERSION).tar.gz
+release/zed-linux-arm-32-v$(ZED_VERSION).tar.gz: nw/download nw/app.nw
+	rm -rf nw/build
+	mkdir -p nw/build/zed
+	cat nw/download/nwjs-v0.12.0-linux-arm/nw nw/app.nw > nw/build/zed/zed-bin
+	cp nw/download/nwjs-v0.12.0-linux-arm/nw.pak nw/download/nwjs-v0.12.0-linux-arm/icudtl.dat nw/build/zed/
+	cp nw/zed-linux nw/build/zed/zed
+	chmod +x nw/build/zed/zed*
+	cp Zed.desktop.tmpl Zed.svg Zed.png nw/build/zed
+	rm -f release/zed-linux32.tar.gz
+	cd nw/build; tar cvzf ../../release/zed-linux-arm-32-v$(ZED_VERSION).tar.gz *
+
+
+
+ifneq ($(PROCESSOR),armv7l)
 apps-linux: apps-linux$(LBITS)
+else
+apps-linux: apps-linux-arm-32
+endif
 
 apps-native: apps-$(PLATFORM)
 
