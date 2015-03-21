@@ -11,6 +11,7 @@ ZED_VERSION=$(shell cat app/manifest.json | grep '"version"' | cut -f 4 -d '"')
 LBITS := $(shell getconf LONG_BIT)
 PREFIX=/usr/local
 PLATNAME := $(shell uname -s)
+PROCESSOR := $(shell uname -p)
 ifeq ($(PLATNAME),Linux)
   PLATFORM := linux
 else
@@ -45,6 +46,10 @@ nw/download/node-webkit-$(NW_VERSION)-linux-ia32:
 	mkdir -p nw/download
 	cd nw/download && curl -OL http://dl.node-webkit.org/$(NW_VERSION)/node-webkit-$(NW_VERSION)-linux-ia32.tar.gz && tar xzf node-webkit-$(NW_VERSION)-linux-ia32.tar.gz
 
+nw/download/node-webkit-$(NW_VERSION)-linux-armhf:
+	msg := "Your processor is not yet supported, see https://github.com/zedapp/zed/issues/510"
+	exit 1
+
 nw/download/node-webkit-$(NW_VERSION)-osx-ia32:
 	mkdir -p nw/download
 	cd nw/download && curl -OL http://dl.node-webkit.org/$(NW_VERSION)/node-webkit-$(NW_VERSION)-osx-ia32.zip && unzip -d node-webkit-$(NW_VERSION)-osx-ia32 node-webkit-$(NW_VERSION)-osx-ia32.zip
@@ -57,7 +62,11 @@ ifeq ($(PLATFORM),linux)
 ifeq ($(LBITS),64)
 nw/download: nw/download/node-webkit-$(NW_VERSION)-linux-x64
 else
+ifneq ($(PROCESSOR),armv7l)
 nw/download: nw/download/node-webkit-$(NW_VERSION)-linux-ia32
+else
+nw/download: nw/download/node-webkit-$(NW_VERSION)-linux-armhf
+endif
 endif
 else
 ifeq ($(PLATFORM),mac)
